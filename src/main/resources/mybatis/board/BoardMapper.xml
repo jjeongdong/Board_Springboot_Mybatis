@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tukorea.board.dao.BoardMapper">
+	<!-- 게시판 글 등록 -->
+	<insert id="insertBoard" parameterType="com.tukorea.board.domain.Board">
+		INSERT INTO TB_BOARD (
+			TITLE,
+			WRITER,
+			PASSWORD,
+			CONTENTS,
+			HITS,
+			REG_DT,
+			MOD_DT
+		)VALUES(
+			#{title},
+			#{writer},
+			SHA2(#{password}, 256),
+			#{contents},
+			0,
+			NOW(),
+			NOW()
+		)
+	</insert>
+	<!-- 게시판 총 건수 조회 -->
+	<select id="selectBoardListTotalCount" parameterType="java.util.HashMap" resultType="Integer">
+		SELECT
+			COUNT(*) AS TOTAL_CNT
+		FROM
+			TB_BOARD
+	</select>
+	
+	<!-- 게시판 목록 조회 -->
+	<select id="selectBoardList" parameterType="java.util.HashMap" resultType="com.tukorea.board.domain.Board">
+		SELECT
+			BOARD_SEQ,
+			TITLE,
+			WRITER,
+			HITS,
+			DATE_FORMAT(REG_DT, '%Y-%m-%d %H:%i') AS REG_DT
+		FROM
+			TB_BOARD
+		ORDER BY
+			BOARD_SEQ DESC
+			LIMIT ${startNum}, ${listNum}
+	</select>
+
+	<!-- 게시판 상세 조회 -->
+	<select id="selectBoardInfo" parameterType="Integer" resultType="com.tukorea.board.domain.Board">
+		SELECT
+			BOARD_SEQ,
+			TITLE,
+			WRITER,
+			PASSWORD,
+			CONTENTS,
+			HITS,
+			DATE_FORMAT(REG_DT, '%Y-%m-%d %H:%i') AS REG_DT,
+			DATE_FORMAT(MOD_DT, '%Y-%m-%d %H:%i') AS MOD_DT
+		FROM
+			TB_BOARD
+		WHERE
+			BOARD_SEQ = #{boardSeq}
+	</select>
+	
+	<!-- 게시물 조회수 증가 -->
+	<update id="updateBoardHits" parameterType="Integer">
+		UPDATE TB_BOARD
+		SET
+			HITS = HITS +1
+		WHERE
+			BOARD_SEQ = #{boardSeq}
+	</update>
+
+	<!-- 게시물 글 소유자 확인 -->
+<select id = "selectBoardPasswordForCheck" parameterType="java.util.HashMap" resultType="Integer">
+	SELECT
+		COUNT(*) AS TOTAL_CNT
+	FROM
+		TB_BOARD
+	WHERE
+		BOARD_SEQ = #{boardSeq}
+		AND PASSWORD = SHA2(#{password}, 256)
+</select>	
+	
+
+<!-- 게시물 글 삭제 -->
+<delete id="deleteBoard" parameterType="Integer">
+	DELETE FROM TB_BOARD
+	WHERE
+		BOARD_SEQ = #{boardSeq}
+</delete>
+
+<!-- 게시물 글 수정 -->
+<update id="updateBoard" parameterType="com.tukorea.board.domain.Board">
+	UPDATE TB_BOARD
+	SET
+		TITLE = #{title},
+		WRITER = #{writer},
+		CoNTENTS = #{contents},
+		MOD_DT = NOW()
+	WHERE
+		BOARD_SEQ = #{boardSeq}
+</update>
+
+
+
+
+
+	
+	
+</mapper>
